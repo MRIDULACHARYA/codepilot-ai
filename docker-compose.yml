@@ -1,0 +1,29 @@
+# CodePilot AI — API + Streamlit UI.
+#   docker compose up --build
+# By default the API container has NO access to the Docker daemon, so test execution/verification is DISABLED
+# (the UI says so; nothing is run unsafely). To enable the sandbox, either run the API on the host (recommended,
+# see docs/setup.md) or add the opt-in override:  docker compose -f docker-compose.yml -f docker-compose.exec.yml up
+services:
+  api:
+    build: { context: ., dockerfile: docker/Dockerfile.api }
+    env_file: [{ path: .env, required: false }]
+    environment:
+      DATABASE_URL: sqlite:////app/data/codepilot.db
+      CHROMA_DIR: /app/data/chroma
+    volumes: [ "codepilot-data:/app/data" ]
+    ports: [ "8000:8000" ]
+    restart: unless-stopped
+  frontend:
+    build: { context: ., dockerfile: docker/Dockerfile.frontend }
+    environment: { API_URL: "http://api:8000" }
+    depends_on: [ api ]
+    ports: [ "8501:8501" ]
+    restart: unless-stopped
+  sandbox-image:
+    # one-shot job: builds the isolated execution image used by the Validation Agent
+    build: { context: execution, dockerfile: Dockerfile }
+    image: codepilot-sandbox:latest
+    profiles: [ build ]
+    command: [ "true" ]
+volumes:
+  codepilot-data: {}

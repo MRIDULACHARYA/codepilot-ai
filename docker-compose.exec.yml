@@ -1,0 +1,9 @@
+# OPT-IN: lets the API container start sandbox containers on the HOST daemon.
+# WARNING: mounting the Docker socket gives the API container root-equivalent control of the host.
+# The socket is never mounted into the *execution* containers (see execution/docker_runner.py), but
+# prefer running the API directly on the host (uvicorn) so no socket has to be shared at all.
+services:
+  api:
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

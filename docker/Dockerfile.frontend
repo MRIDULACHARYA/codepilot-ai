@@ -1,0 +1,9 @@
+FROM python:3.11-slim
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+WORKDIR /app
+RUN pip install --no-cache-dir "streamlit>=1.37" "httpx>=0.27" "pandas>=2.0"
+COPY frontend ./frontend
+RUN useradd --uid 10003 --create-home app
+USER app
+EXPOSE 8501
+CMD ["streamlit", "run", "frontend/app.py", "--server.address=0.0.0.0", "--server.port=8501", "--server.headless=true"]
